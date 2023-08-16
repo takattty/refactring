@@ -2,6 +2,7 @@ package first.example.com;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.AnnotationCollector;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 public class Main {
 
+
     public static void main(String[] args) throws IOException {
         int totalAmount = 0;
         int volumeCredits = 0;
@@ -23,17 +25,9 @@ public class Main {
         NumberFormat format = NumberFormat.getNumberInstance(locale);
         format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
 
-        ObjectMapper InvoiceObjectMapper = new ObjectMapper();
-        Path invoicePath = Paths.get("/Users/takatty/software/java/refactring/src/main/java/first/example/com/invoice.json");
-        var invoiceJson = InvoiceObjectMapper.readTree(invoicePath.toFile()).get(0);
 
-        ObjectMapper playObjectMapper = new ObjectMapper();
-        Path playPath = Paths.get("/Users/takatty/software/java/refactring/src/main/java/first/example/com/plays.json");
-        var playJson = playObjectMapper.readTree(playPath.toFile());
-
-
-        for (var perf : invoiceJson.get("performances")) {
-            var play = playJson.get(perf.get("playID").asText());
+        for (var perf : buildInvoiceJson().get("performances")) {
+            var play = playFor(perf);
             var audience = perf.get("audience").asInt();
             int thisAmount = amountFor(audience, play);
 
@@ -78,5 +72,27 @@ public class Main {
         }
 
         return result;
+    }
+
+    /**
+     * プレイヤーのIDから、パフォーマー名を取得.
+     * <p>
+     * @param aPerformance パフォーマンス
+     * @return JsonNode パフォーマーID
+     * @throws IOException
+     */
+    public static JsonNode playFor(JsonNode aPerformance) throws IOException {
+        return buildPlayJson().get(aPerformance.get("playID").asText());
+    }
+    public static JsonNode buildInvoiceJson() throws IOException {
+        ObjectMapper InvoiceObjectMapper = new ObjectMapper();
+        Path invoicePath = Paths.get("/Users/takatty/software/java/refactring/src/main/java/first/example/com/invoice.json");
+        return InvoiceObjectMapper.readTree(invoicePath.toFile()).get(0);
+    }
+
+    public static JsonNode buildPlayJson() throws IOException {
+        ObjectMapper playObjectMapper = new ObjectMapper();
+        Path playPath = Paths.get("/Users/takatty/software/java/refactring/src/main/java/first/example/com/plays.json");
+        return playObjectMapper.readTree(playPath.toFile());
     }
 }
