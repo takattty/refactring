@@ -13,6 +13,10 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
+        statement(buildInvoiceJson(), buildPlayJson());
+    }
+
+    public static void statement(JsonNode invoice, JsonNode plays) throws IOException {
         int totalAmount = 0;
         int volumeCredits = 0;
         String result = "=====Statement for BigCo=====\n";
@@ -22,17 +26,15 @@ public class Main {
         NumberFormat format = NumberFormat.getNumberInstance(locale);
         format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
 
-
-        for (var perf : buildInvoiceJson().get("performances")) {
-            var audience = perf.get("audience").asInt();
-            int thisAmount = amountFor(audience, playFor(perf));
+        for (var perf : invoice.get("performances")) {
+            int thisAmount = amountFor(perf.get("audience").asInt(), playFor(plays, perf));
 
             // ボリューム特典のポイントを加算
-            volumeCredits += Math.max(audience - 30, 0);
+            volumeCredits += Math.max(perf.get("audience").asInt() - 30, 0);
             // 喜劇の時は10人につき、更にポイントを加算
-            if ("comedy".equals(playFor(perf).get("type").asText())) volumeCredits += (audience / 5);
+            if ("comedy".equals(playFor(plays, perf).get("type").asText())) volumeCredits += (perf.get("audience").asInt() / 5);
             // 注文の内訳を出力
-            result += " " + playFor(perf).get("name").asText() + ": " + format.format(thisAmount / 100) + " " + audience + "seats \n";
+            result += " " + playFor(plays, perf).get("name").asText() + ": " + format.format(thisAmount / 100) + " " + perf.get("audience").asInt() + "seats \n";
             totalAmount += thisAmount;
         }
         result += "Amount owed is " + format.format(totalAmount / 100) + "\n";
@@ -46,23 +48,23 @@ public class Main {
      * 処理の中で変更されないため、引数で渡している.<br>
      * 値を変更するのが今回は1つなので、戻り値にしている.
      *
-     * @param audience 観客数
+     * @param perf 観客数
      * @param play     演目
      * @return 演目に対する料金
      */
-    public static int amountFor(int audience, JsonNode play) {
+    public static int amountFor(int perf, JsonNode play) {
         int result = 0;
         switch (play.get("type").asText()) {
             case "tragedy" -> {
                 result = 40000;
-                if (audience > 30) {
-                    result += (10000 * (audience - 30));
+                if (perf > 30) {
+                    result += (10000 * (perf - 30));
                 }
             }
             case "comedy" -> {
                 result = 30000;
-                if (audience > 20) {
-                    result += (300 * audience);
+                if (perf > 20) {
+                    result += (300 * perf);
                 }
             }
             default -> throw new Error("unkown type: " + play.get("type"));
@@ -78,8 +80,8 @@ public class Main {
      * @param aPerformance パフォーマンス
      * @return JsonNode パフォーマーID
      */
-    public static JsonNode playFor(JsonNode aPerformance) throws IOException {
-        return buildPlayJson().get(aPerformance.get("playID").asText());
+    public static JsonNode playFor(JsonNode plays, JsonNode aPerformance) {
+        return plays.get(aPerformance.get("playID").asText());
     }
 
     public static JsonNode buildInvoiceJson() throws IOException {
