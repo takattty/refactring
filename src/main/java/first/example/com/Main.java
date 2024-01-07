@@ -27,7 +27,7 @@ public class Main {
         format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
 
         for (var perf : invoice.get("performances")) {
-            int thisAmount = amountFor(perf, playFor(perf));
+            int thisAmount = amountFor(perf);
 
             // ボリューム特典のポイントを加算
             volumeCredits += Math.max(perf.get("audience").asInt() - 30, 0);
@@ -49,12 +49,11 @@ public class Main {
      * 値を変更するのが今回は1つなので、戻り値にしている.
      *
      * @param perf 観客
-     * @param play 演目
      * @return 演目に対する料金
      */
-    public static int amountFor(JsonNode perf, JsonNode play) {
+    public static int amountFor(JsonNode perf) throws IOException {
         int result = 0;
-        switch (play.get("type").asText()) {
+        switch (playFor(perf).get("type").asText()) {
             case "tragedy" -> {
                 result = 40000;
                 if (perf.get("audience").asInt() > 30) {
@@ -67,7 +66,7 @@ public class Main {
                     result += (300 * perf.get("audience").asInt());
                 }
             }
-            default -> throw new Error("unkown type: " + play.get("type"));
+            default -> throw new Error("unkown type: " + playFor(perf).get("type"));
         }
 
         return result;
