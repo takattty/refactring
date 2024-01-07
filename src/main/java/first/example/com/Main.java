@@ -20,18 +20,13 @@ public class Main {
         int volumeCredits = 0;
         String result = "=====Statement for BigCo=====\n";
 
-        // ロケールとオプションを指定してフォーマットする
-        Locale locale = new Locale("en", "US"); // 日本のロケールを使用
-        NumberFormat format = NumberFormat.getNumberInstance(locale);
-        format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
-
         for (var perf : invoice.get("performances")) {
             volumeCredits += volumeCreditsFor(perf);
             // 注文の内訳を出力
-            result += " " + playFor(perf).get("name").asText() + ": " + format.format(amountFor(perf) / 100) + " " + perf.get("audience").asInt() + "seats \n";
+            result += " " + playFor(perf).get("name").asText() + ": " + format(amountFor(perf) / 100) + " " + perf.get("audience").asInt() + "seats \n";
             totalAmount += amountFor(perf);
         }
-        result += "Amount owed is " + format.format(totalAmount / 100) + "\n";
+        result += "Amount owed is " + format(totalAmount / 100) + "\n";
         result += "=====You earned " + volumeCredits + " credits=====\n";
         System.out.println(result);
     }
@@ -44,6 +39,14 @@ public class Main {
         if ("comedy".equals(playFor(aPerformance).get("type").asText())) result += (aPerformance.get("audience").asInt() / 5);
 
         return result;
+    }
+
+    public static String format(int number) {
+        // ロケールとオプションを指定してフォーマットする
+        Locale locale = new Locale("en", "US"); // 日本のロケールを使用
+        NumberFormat format = NumberFormat.getNumberInstance(locale);
+        format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
+        return format.format(number);
     }
 
     /**
