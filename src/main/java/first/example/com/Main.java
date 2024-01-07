@@ -27,15 +27,13 @@ public class Main {
         format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
 
         for (var perf : invoice.get("performances")) {
-            int thisAmount = amountFor(perf);
-
             // ボリューム特典のポイントを加算
             volumeCredits += Math.max(perf.get("audience").asInt() - 30, 0);
             // 喜劇の時は10人につき、更にポイントを加算
             if ("comedy".equals(playFor(perf).get("type").asText())) volumeCredits += (perf.get("audience").asInt() / 5);
             // 注文の内訳を出力
-            result += " " + playFor(perf).get("name").asText() + ": " + format.format(thisAmount / 100) + " " + perf.get("audience").asInt() + "seats \n";
-            totalAmount += thisAmount;
+            result += " " + playFor(perf).get("name").asText() + ": " + format.format(amountFor(perf) / 100) + " " + perf.get("audience").asInt() + "seats \n";
+            totalAmount += amountFor(perf);
         }
         result += "Amount owed is " + format.format(totalAmount / 100) + "\n";
         result += "=====You earned " + volumeCredits + " credits=====\n";
