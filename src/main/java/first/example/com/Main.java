@@ -11,7 +11,6 @@ import java.util.Locale;
 
 public class Main {
 
-
     public static void main(String[] args) throws IOException {
         statement(buildInvoiceJson());
     }
@@ -37,14 +36,14 @@ public class Main {
         System.out.println(result);
     }
 
-    public static int volumeCreditsFor(JsonNode perf) throws IOException {
-        int volumeCredits = 0;
+    public static int volumeCreditsFor(JsonNode aPerformance) throws IOException {
+        int result = 0;
         // ボリューム特典のポイントを加算
-        volumeCredits += Math.max(perf.get("audience").asInt() - 30, 0);
+        result += Math.max(aPerformance.get("audience").asInt() - 30, 0);
         // 喜劇の時は10人につき、更にポイントを加算
-        if ("comedy".equals(playFor(perf).get("type").asText())) volumeCredits += (perf.get("audience").asInt() / 5);
+        if ("comedy".equals(playFor(aPerformance).get("type").asText())) result += (aPerformance.get("audience").asInt() / 5);
 
-        return volumeCredits;
+        return result;
     }
 
     /**
