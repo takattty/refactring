@@ -23,10 +23,10 @@ public class Main {
         for (var perf : invoice.get("performances")) {
             volumeCredits += volumeCreditsFor(perf);
             // 注文の内訳を出力
-            result += " " + playFor(perf).get("name").asText() + ": " + format(amountFor(perf) / 100) + " " + perf.get("audience").asInt() + "seats \n";
+            result += " " + playFor(perf).get("name").asText() + ": " + usd(amountFor(perf)) + " " + perf.get("audience").asInt() + "seats \n";
             totalAmount += amountFor(perf);
         }
-        result += "Amount owed is " + format(totalAmount / 100) + "\n";
+        result += "Amount owed is " + usd(totalAmount) + "\n";
         result += "=====You earned " + volumeCredits + " credits=====\n";
         System.out.println(result);
     }
@@ -41,12 +41,12 @@ public class Main {
         return result;
     }
 
-    public static String format(int number) {
+    public static String usd(int number) {
         // ロケールとオプションを指定してフォーマットする
         Locale locale = new Locale("en", "US"); // 日本のロケールを使用
         NumberFormat format = NumberFormat.getNumberInstance(locale);
         format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
-        return format.format(number);
+        return format.format(number/100);
     }
 
     /**
