@@ -2,15 +2,12 @@ package first.example.com;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.AnnotationCollector;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Map;
 
 public class Main {
 
@@ -18,7 +15,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         int totalAmount = 0;
         int volumeCredits = 0;
-        String result = "Statement for BigCo\n";
+        String result = "=====Statement for BigCo=====\n";
 
         // ロケールとオプションを指定してフォーマットする
         Locale locale = new Locale("en", "US"); // 日本のロケールを使用
@@ -27,20 +24,19 @@ public class Main {
 
 
         for (var perf : buildInvoiceJson().get("performances")) {
-            var play = playFor(perf);
             var audience = perf.get("audience").asInt();
-            int thisAmount = amountFor(audience, play);
+            int thisAmount = amountFor(audience, playFor(perf));
 
             // ボリューム特典のポイントを加算
             volumeCredits += Math.max(audience - 30, 0);
             // 喜劇の時は10人につき、更にポイントを加算
-            if ("comedy".equals(play.get("type").asText())) volumeCredits += (audience / 5);
+            if ("comedy".equals(playFor(perf).get("type").asText())) volumeCredits += (audience / 5);
             // 注文の内訳を出力
-            result += " " + play.get("name").asText() + ": " + format.format(thisAmount / 100) + " " + audience + "seats \n";
+            result += " " + playFor(perf).get("name").asText() + ": " + format.format(thisAmount / 100) + " " + audience + "seats \n";
             totalAmount += thisAmount;
         }
-        result += "Amount owed is " + format.format(totalAmount/100) + "\n";
-        result += "You earned " + volumeCredits + " credits\n";
+        result += "Amount owed is " + format.format(totalAmount / 100) + "\n";
+        result += "=====You earned " + volumeCredits + " credits=====\n";
         System.out.println(result);
     }
 
@@ -49,8 +45,9 @@ public class Main {
      * <p>
      * 処理の中で変更されないため、引数で渡している.<br>
      * 値を変更するのが今回は1つなので、戻り値にしている.
+     *
      * @param audience 観客数
-     * @param play 演目
+     * @param play     演目
      * @return 演目に対する料金
      */
     public static int amountFor(int audience, JsonNode play) {
@@ -77,13 +74,14 @@ public class Main {
     /**
      * プレイヤーのIDから、パフォーマー名を取得.
      * <p>
+     *
      * @param aPerformance パフォーマンス
      * @return JsonNode パフォーマーID
-     * @throws IOException
      */
     public static JsonNode playFor(JsonNode aPerformance) throws IOException {
         return buildPlayJson().get(aPerformance.get("playID").asText());
     }
+
     public static JsonNode buildInvoiceJson() throws IOException {
         ObjectMapper InvoiceObjectMapper = new ObjectMapper();
         Path invoicePath = Paths.get("/Users/takatty/software/java/refactring/src/main/java/first/example/com/invoice.json");
