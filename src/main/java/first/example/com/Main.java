@@ -13,10 +13,10 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
-        statement(buildInvoiceJson(), buildPlayJson());
+        statement(buildInvoiceJson());
     }
 
-    public static void statement(JsonNode invoice, JsonNode plays) throws IOException {
+    public static void statement(JsonNode invoice) throws IOException {
         int totalAmount = 0;
         int volumeCredits = 0;
         String result = "=====Statement for BigCo=====\n";
@@ -27,14 +27,14 @@ public class Main {
         format.setMaximumFractionDigits(2); // 小数点以下の最大桁数を指定
 
         for (var perf : invoice.get("performances")) {
-            int thisAmount = amountFor(perf.get("audience").asInt(), playFor(plays, perf));
+            int thisAmount = amountFor(perf.get("audience").asInt(), playFor(perf));
 
             // ボリューム特典のポイントを加算
             volumeCredits += Math.max(perf.get("audience").asInt() - 30, 0);
             // 喜劇の時は10人につき、更にポイントを加算
-            if ("comedy".equals(playFor(plays, perf).get("type").asText())) volumeCredits += (perf.get("audience").asInt() / 5);
+            if ("comedy".equals(playFor(perf).get("type").asText())) volumeCredits += (perf.get("audience").asInt() / 5);
             // 注文の内訳を出力
-            result += " " + playFor(plays, perf).get("name").asText() + ": " + format.format(thisAmount / 100) + " " + perf.get("audience").asInt() + "seats \n";
+            result += " " + playFor(perf).get("name").asText() + ": " + format.format(thisAmount / 100) + " " + perf.get("audience").asInt() + "seats \n";
             totalAmount += thisAmount;
         }
         result += "Amount owed is " + format.format(totalAmount / 100) + "\n";
@@ -77,11 +77,11 @@ public class Main {
      * プレイヤーのIDから、パフォーマー名を取得.
      * <p>
      *
-     * @param aPerformance パフォーマンス
+     * @param perf パフォーマンス
      * @return JsonNode パフォーマーID
      */
-    public static JsonNode playFor(JsonNode plays, JsonNode aPerformance) {
-        return plays.get(aPerformance.get("playID").asText());
+    public static JsonNode playFor(JsonNode perf) throws IOException {
+        return buildPlayJson().get(perf.get("playID").asText());
     }
 
     public static JsonNode buildInvoiceJson() throws IOException {
