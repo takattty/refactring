@@ -17,14 +17,16 @@ public class Main {
 
     public static void statement(JsonNode invoice) throws IOException {
         int totalAmount = 0;
-        int volumeCredits = 0;
         String result = "=====Statement for BigCo=====\n";
 
         for (var perf : invoice.get("performances")) {
-            volumeCredits += volumeCreditsFor(perf);
             // 注文の内訳を出力
             result += " " + playFor(perf).get("name").asText() + ": " + usd(amountFor(perf)) + " " + perf.get("audience").asInt() + "seats \n";
             totalAmount += amountFor(perf);
+        }
+        int volumeCredits = 0;
+        for (var perf : invoice.get("performances")) {
+            volumeCredits += volumeCreditsFor(perf);
         }
         result += "Amount owed is " + usd(totalAmount) + "\n";
         result += "=====You earned " + volumeCredits + " credits=====\n";
